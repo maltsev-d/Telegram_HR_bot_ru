@@ -7,8 +7,8 @@
 ### 1. Клонируйте репозиторий
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/maltsev-d/test_hr_bot_maltsev_all_bot.git
+cd test_hr_bot_maltsev_all_bot
 ```
 
 ### 2. Установите зависимости
@@ -38,13 +38,6 @@ python main.py
 - `states.py` — состояния FSM
 - `vacancies.py` — список вакансий
 - `analytics.py` — сохранение данных кандидатов
+- data
+  - `analytics.csv` - файл с данными аналитики
 
-## 🛠 TODO
-
-- Хранение данных в базе
-- Панель администратора
-- Поддержка мультиязычности
-
-## 📄 Лицензия
-
-MIT License
