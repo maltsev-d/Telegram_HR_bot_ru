@@ -57,7 +57,7 @@ async def cmd_start(message: Message, state: FSMContext):
         date=date_now
     )
 
-    kb = single_button_keyboard("🔍 Активные вакансии", "show_vacancies")
+    kb = single_button_keyboard("🔍  Активные вакансии", "show_vacancies")
     await message.answer(
         texts.START_MESSAGE.format(message.from_user.first_name),
         reply_markup=kb
@@ -73,8 +73,8 @@ async def show_vacancies(callback: CallbackQuery):
         await callback.message.answer("Нет подходящих вакансий.")
 
     for v in vacancies:
-        kb = single_button_keyboard("👉 Откликнуться", f"apply_{v['id']}")
-        await callback.message.answer(f"*{v['title']}*\n{v['description']}", reply_markup=kb)
+        kb = single_button_keyboard("👉  Откликнуться", f"apply_{v['id']}")
+        await callback.message.answer(f"*{v['title']}*\n\n{v['description']}", reply_markup=kb)
     await callback.answer()
 
 
