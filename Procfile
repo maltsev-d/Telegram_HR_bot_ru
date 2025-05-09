@@ -1,1 +1,1 @@
-worker: python3 main.py
+worker: pm2 start main.py --interpreter python3
