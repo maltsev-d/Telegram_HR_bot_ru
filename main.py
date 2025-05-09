@@ -266,6 +266,12 @@ async def accept_candidate(callback: CallbackQuery):
     await callback.message.answer(f"✅ Кандидат {user_id} получил уведомление о приеме.")
     await callback.answer()
 
+"""Выгрузка файла аналитики"""
+@router.message(lambda m: m.text == "/download")
+async def send_csv(message: Message):
+    with open("data/analytics.csv", "rb") as f:
+        await message.answer_document(f, caption="Вот ваш файл аналитики")
+
 
 @router.message(Form.rejection_reason_final)
 async def save_final_rejection(message: Message, state: FSMContext):
