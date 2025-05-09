@@ -11,7 +11,13 @@ git clone https://github.com/maltsev-d/test_hr_bot_maltsev_all_bot.git
 cd test_hr_bot_maltsev_all_bot
 ```
 
-### 2. Установите зависимости
+### 2. Создайте файл `.env` и вставьте туда свой токен:
+
+```env
+BOT_TOKEN=реальный_токен
+```
+
+### 3. Установите зависимости
 
 Убедитесь, что у вас установлен Python 3.10 или выше.
 
@@ -19,7 +25,7 @@ cd test_hr_bot_maltsev_all_bot
 pip install -r requirements.txt
 ```
 
-### 3. Запустите бота
+### 4. Запустите бота
 
 ```bash
 python main.py
@@ -40,4 +46,3 @@ python main.py
 - `analytics.py` — сохранение данных кандидатов
 - data
   - `analytics.csv` - файл с данными аналитики
-

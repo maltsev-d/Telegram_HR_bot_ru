@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from aiogram import Router
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -8,6 +9,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.filters import CommandStart
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import os
 
 from keyboards import yes_no_keyboard, single_button_keyboard, decision_keyboard
 from vacancies import get_vacancies
@@ -19,10 +22,18 @@ import texts
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-API_TOKEN = "7753222858:AAESQWo4gtdlgoeeNWv8QG-jAcVoqEiNLf8"
+# Загружаем переменные окружения
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
+
+# Роутер
+router = Router()
+
+
+#API_TOKEN = "7753222858:AAESQWo4gtdlgoeeNWv8QG-jAcVoqEiNLf8"
 
 bot = Bot(
-    token=API_TOKEN,
+    token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 )
 dp = Dispatcher(storage=MemoryStorage())
@@ -276,11 +287,16 @@ async def save_final_rejection(message: Message, state: FSMContext):
     await state.clear()
 
 
+"""Основная функция запуска бота"""
 async def main():
-    """Основная функция запуска бота"""
-    init_analytics()
-    await dp.start_polling(bot)
+    init_analytics()  # Инициализация аналитики
 
+    bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
+    dp = Dispatcher(storage=MemoryStorage())
+    dp.include_router(router)
 
+    await dp.start_polling(bot) #Запуск бота
+
+"""Запуск приложения"""
 if __name__ == "__main__":
     asyncio.run(main())
