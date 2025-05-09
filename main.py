@@ -25,21 +25,21 @@ logger = logging.getLogger(__name__)
 # Загружаем переменные окружения
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise ValueError("Переменная окружения BOT_TOKEN не найдена или пуста!")
 
 # Роутер
 router = Router()
-
-
-#API_TOKEN = "7753222858:AAESQWo4gtdlgoeeNWv8QG-jAcVoqEiNLf8"
 
 bot = Bot(
     token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 )
 dp = Dispatcher(storage=MemoryStorage())
+dp.include_router(router)
 
 
-@dp.message(CommandStart())
+@router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     """Обработка команды /start"""
     await state.clear()
@@ -64,7 +64,7 @@ async def cmd_start(message: Message, state: FSMContext):
     )
 
 
-@dp.callback_query(lambda c: c.data == "show_vacancies")
+@router.callback_query(lambda c: c.data == "show_vacancies")
 async def show_vacancies(callback: CallbackQuery):
     """Показать доступные вакансии"""
     vacancies = get_vacancies()
@@ -78,7 +78,7 @@ async def show_vacancies(callback: CallbackQuery):
     await callback.answer()
 
 
-@dp.callback_query(lambda c: c.data.startswith("apply_"))
+@router.callback_query(lambda c: c.data.startswith("apply_"))
 async def apply(callback: CallbackQuery, state: FSMContext):
     """Откликнуться на вакансию"""
     vacancy_id = callback.data.split("_")[1]
@@ -101,14 +101,14 @@ async def apply(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Form.interest)
 
 
-@dp.callback_query(lambda c: c.data == "continue_no")
+@router.callback_query(lambda c: c.data == "continue_no")
 async def no_continue(callback: CallbackQuery, state: FSMContext):
     """Пользователь не заинтересован"""
     await callback.message.answer(texts.REJECTION_ASK)
     await state.set_state(Form.rejection_reason)
 
 
-@dp.message(Form.rejection_reason)
+@router.message(Form.rejection_reason)
 async def save_reason(message: Message, state: FSMContext):
     """Сохранить причину отказа"""
     await update_user_fields(message.from_user.id,
@@ -120,14 +120,14 @@ async def save_reason(message: Message, state: FSMContext):
     await state.clear()
 
 
-@dp.callback_query(lambda c: c.data == "continue_yes")
+@router.callback_query(lambda c: c.data == "continue_yes")
 async def ask_main_thing(callback: CallbackQuery, state: FSMContext):
     """Пользователь продолжает общение, задаём вопросы"""
     await callback.message.answer(texts.QUESTION_1)
     await state.set_state(Form.question_1)
 
 
-@dp.message(Form.question_1)
+@router.message(Form.question_1)
 async def get_main_thing(message: Message, state: FSMContext):
     """Получение ответа на первый вопрос"""
     await update_user_fields(message.from_user.id, important=message.text)
@@ -135,7 +135,7 @@ async def get_main_thing(message: Message, state: FSMContext):
     await state.set_state(Form.question_2)
 
 
-@dp.message(Form.question_2)
+@router.message(Form.question_2)
 async def process_salary(message: Message, state: FSMContext):
     """Обработка зарплатных ожиданий"""
     salary = message.text.strip()
@@ -144,7 +144,7 @@ async def process_salary(message: Message, state: FSMContext):
         salary_clean = int(salary.replace(' ', '').replace(',', ''))
         if salary_clean < 10000 or salary_clean > 500000:
             raise ValueError("Значение вне допустимого диапазона")
-    except Exception:
+    except ValueError:
         await message.answer(texts.SALARY_ERROR)
         return
     await update_user_fields(message.from_user.id, salary_expectations=salary)
@@ -159,7 +159,7 @@ months_ru = {
 }
 
 
-@dp.message(Form.interview_invite)
+@router.message(Form.interview_invite)
 async def interview_invite(message: Message, state: FSMContext):
     """Приглашение на интервью"""
     # Расчёт 48 рабочих часов
@@ -191,7 +191,7 @@ async def interview_invite(message: Message, state: FSMContext):
     await state.set_state(Form.interview_invite)
 
 
-@dp.callback_query(F.data == "interview_yes")
+@router.callback_query(lambda c: c.data == "interview_yes")
 async def interview_yes(callback: types.CallbackQuery, state: FSMContext):
     """Подтверждение интервью"""
     await update_user_fields(callback.from_user.id, status="Интервью HR")
@@ -199,7 +199,7 @@ async def interview_yes(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
 
 
-@dp.callback_query(F.data == "interview_no")
+@router.callback_query(lambda c: c.data == "interview_no")
 async def interview_no(callback: types.CallbackQuery, state: FSMContext):
     """Отказ от интервью"""
     kb = single_button_keyboard("Никогда", "never")
@@ -207,7 +207,7 @@ async def interview_no(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.reschedule)
 
 
-@dp.message(Form.reschedule)
+@router.message(Form.reschedule)
 async def process_reschedule(message: Message, state: FSMContext):
     """Обработка повторного интервью"""
     await update_user_fields(message.from_user.id,
@@ -219,14 +219,14 @@ async def process_reschedule(message: Message, state: FSMContext):
     await state.clear()
 
 
-@dp.callback_query(F.data == "never")
+@router.callback_query(lambda c: c.data == "never")
 async def never_reason(callback: types.CallbackQuery, state: FSMContext):
     """Отказ от интервью навсегда"""
     await callback.message.answer(texts.NEVER_REASON)
     await state.set_state(Form.refusal_reason)
 
 
-@dp.message(Form.refusal_reason)
+@router.message(Form.refusal_reason)
 async def process_refusal_reason(message: Message, state: FSMContext):
     """Процесс отказа от интервью"""
     await update_user_fields(message.from_user.id,
@@ -238,7 +238,7 @@ async def process_refusal_reason(message: Message, state: FSMContext):
     await state.clear()
 
 
-@dp.message(lambda m: m.text.startswith("/evaluate"))
+@router.message(lambda m: m.text.startswith("/evaluate"))
 async def evaluate_candidate(message: Message):
     """Оценка кандидата"""
     parts = message.text.strip().split()
@@ -252,7 +252,7 @@ async def evaluate_candidate(message: Message):
                          reply_markup=kb)
 
 
-@dp.callback_query(F.data.startswith("decision_accept_"))
+@router.callback_query(F.data.startswith("decision_accept_"))
 async def accept_candidate(callback: CallbackQuery):
     """Принять кандидата"""
     user_id = callback.data.split("_")[2]
@@ -265,7 +265,7 @@ async def accept_candidate(callback: CallbackQuery):
     await callback.answer()
 
 
-@dp.message(Form.rejection_reason_final)
+@router.message(Form.rejection_reason_final)
 async def save_final_rejection(message: Message, state: FSMContext):
     """Сохранить окончательный отказ"""
     data = await state.get_data()
@@ -289,14 +289,8 @@ async def save_final_rejection(message: Message, state: FSMContext):
 
 """Основная функция запуска бота"""
 async def main():
-    init_analytics()  # Инициализация аналитики
+    init_analytics()
+    await dp.start_polling(bot)
 
-    bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
-    dp = Dispatcher(storage=MemoryStorage())
-    dp.include_router(router)
-
-    await dp.start_polling(bot) #Запуск бота
-
-"""Запуск приложения"""
 if __name__ == "__main__":
     asyncio.run(main())
