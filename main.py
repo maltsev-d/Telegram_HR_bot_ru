@@ -4,10 +4,10 @@ from aiogram import Router
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
@@ -267,10 +267,14 @@ async def accept_candidate(callback: CallbackQuery):
     await callback.answer()
 
 """Выгрузка файла аналитики"""
-@router.message(lambda m: m.text == "/download")
-async def send_csv(message: Message):
-    with open("data/analytics.csv", "rb") as f:
-        await message.answer_document(f, caption="Вот ваш файл аналитики")
+@router.message(Command("download"))
+async def send_csv(message: types.Message):
+    file_path = "data/analytics.csv"
+    try:
+        document = FSInputFile(file_path, filename="analytics.csv")
+        await message.answer_document(document, caption="Вот ваш файл аналитики 📊")
+    except FileNotFoundError:
+        await message.answer("Файл аналитики не найден 😕")
 
 
 @router.message(Form.rejection_reason_final)
