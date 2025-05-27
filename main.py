@@ -266,16 +266,15 @@ async def accept_candidate(callback: CallbackQuery):
     await callback.message.answer(f"✅ Кандидат {user_id} получил уведомление о приеме.")
     await callback.answer()
 
-"""Выгрузка файла аналитики"""
-@router.message(Command("download"))
-async def send_csv(message: types.Message):
-    file_path = "data/analytics.csv"
-    try:
-        document = FSInputFile(file_path, filename="analytics.csv")
-        await message.answer_document(document, caption="Вот ваш файл аналитики 📊")
-    except FileNotFoundError:
-        await message.answer("Файл аналитики не найден 😕")
 
+
+@router.callback_query(F.data.startswith("decision_reject_"))
+async def reject_candidate(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.data.split("_")[2]
+    await state.set_state(Form.rejection_reason_final)
+    await state.update_data(user_id=user_id)
+    await callback.message.answer("Введите причину окончательного отказа кандидату:")
+    await callback.answer()
 
 @router.message(Form.rejection_reason_final)
 async def save_final_rejection(message: Message, state: FSMContext):
@@ -297,6 +296,27 @@ async def save_final_rejection(message: Message, state: FSMContext):
 
     await message.answer(f"❌ Кандидату {user_id} отправлено уведомление об отказе.")
     await state.clear()
+
+"""Выгрузка файла аналитики"""
+@router.message(Command("download"))
+async def send_csv(message: types.Message):
+    file_path = "data/analytics.csv"
+    try:
+        document = FSInputFile(file_path, filename="analytics.csv")
+        await message.answer_document(document, caption="Вот ваш файл аналитики 📊")
+    except FileNotFoundError:
+        await message.answer("Файл аналитики не найден 😕")
+
+@router.message(Command("vacancies"))
+async def show_vacancies_command(message: Message):
+    """Команда для HR: показать все вакансии"""
+    vacancies = get_vacancies()
+    if not vacancies:
+        await message.answer("Нет активных вакансий.")
+        return
+
+    for v in vacancies:
+        await message.answer(f"*{v['title']}*\n\n{v['description']}")
 
 
 """Основная функция запуска бота"""
