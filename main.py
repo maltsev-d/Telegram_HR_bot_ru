@@ -18,6 +18,11 @@ from analytics import init_analytics, update_user_fields
 from states import Form
 import texts
 
+#Заглушка для Reender
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+#-------------------------------------------------
+
 # Настройка логирования
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -323,6 +328,25 @@ async def show_vacancies_command(message: Message):
 async def main():
     init_analytics()
     await dp.start_polling(bot)
+
+# --- Заглушка для Render, чтобы он видел порт ---
+def run_http():
+    import os
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    port = int(os.environ.get("PORT", 8000))  # Render подставляет PORT
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"HR Bot is alive 🚀")
+
+    httpd = HTTPServer(('0.0.0.0', port), Handler)
+    httpd.serve_forever()
+
+import threading
+threading.Thread(target=run_http, daemon=True).start()
+# --------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(main())
