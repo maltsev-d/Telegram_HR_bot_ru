@@ -334,7 +334,7 @@ def run_http():
     import os
     from http.server import HTTPServer, BaseHTTPRequestHandler
 
-    port = int(os.environ.get("PORT", 8080))  # Render подставляет PORT
+    port = int(os.environ.get("PORT", 5000))  # Render подставляет PORT
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             self.send_response(200)
