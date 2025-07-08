@@ -339,7 +339,7 @@ def run_http():
         def do_GET(self):
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"HR Bot is alive 🚀")
+            self.wfile.write(b"HR Bot is alive")
 
     httpd = HTTPServer(('0.0.0.0', port), Handler)
     httpd.serve_forever()
