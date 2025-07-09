@@ -21,6 +21,7 @@ import texts
 #Заглушка для Reender
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
+import sys
 #-------------------------------------------------
 
 # Настройка логирования
@@ -347,8 +348,21 @@ def run_http():
 
 import threading
 threading.Thread(target=run_http, daemon=True).start()
+
+async def auto_restart(delay=1800):  # 1800 сек = 30 мин
+    await asyncio.sleep(delay)
+    print("[INFO] ⏱️ Время перезапуска!")
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
+async def main():
+    init_analytics()
+
+    # Запускаем перезапуск в фоне
+    asyncio.create_task(auto_restart())
+
+    await dp.start_polling(bot)
 # --------------------------------------------------
 
 if __name__ == "__main__":
     asyncio.run(main())
-
